@@ -4,6 +4,6 @@ use Mix.Config
 
 # 3rd party setting
 config :dexy_plugin_gateway, DexyPluginGateway, %{
-  # app_name => {node_name, mailbox_name}
-  "foo" => {:"gateway@127.0.0.1", :mailbox}
+  # app_name => {process_name, node}
+  "foo" => {:mailbox, :"gateway@127.0.0.1"}
 }

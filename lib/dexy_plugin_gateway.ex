@@ -27,22 +27,22 @@ defmodule DexyPluginGateway do
 
   def on_call state do
     [app, fun] = app_fun state
-    case node_mbox app do
-      {_node, _mbox} = node_mbox ->
+    case gateway_addr app do
+      {_proc, _node} = dest ->
         request_id = request_id()
         timeout = request_timeout(state)
         msg = request_msg request_id, app, fun, state
-        send_request(node_mbox, msg)
+        send_request(dest, msg)
         res = await_response(request_id, timeout)
-        IO.inspect node_mbox: node_mbox, msg: msg, res: res
+        IO.inspect dest: dest, msg: msg, res: res
         {state, res}
       _ ->
         {state, nil}
     end
   end
 
-  defp send_request node_mbox, msg do
-    send node_mbox, msg
+  defp send_request dest = {_proc, _node}, msg do
+    send dest, msg
   end
 
   defp await_response request_id, timeout do
@@ -59,7 +59,7 @@ defmodule DexyPluginGateway do
   end
 
   defp request_id do -(:erlang.unique_integer) end
-  defp node_mbox(app) do config(app) end
+  defp gateway_addr(app) do config(app) end
 
   defp request_msg request_id, app, fun, state = %{args: args, opts: opts} do
     opts = Map.put(opts, "data", pipe_data state)
