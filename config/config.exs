@@ -5,5 +5,5 @@ use Mix.Config
 # 3rd party setting
 config :dexy_plugin_gateway, DexyPluginGateway, %{
   # app_name => {node_name, mailbox_name}
-  "idvphone" => {:"gateway@127.0.0.1", :mailbox}
+  "foo" => {:"gateway@127.0.0.1", :mailbox}
 }

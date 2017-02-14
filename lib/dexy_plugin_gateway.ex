@@ -25,12 +25,13 @@ defmodule DexyPluginGateway do
     :world
   end
 
-  def on_call state = %{req: req} do
-    case node_mbox req.app do
+  def on_call state do
+    [app, fun] = app_fun state
+    case node_mbox app do
       {_node, _mbox} = node_mbox ->
         request_id = request_id()
         timeout = request_timeout(state)
-        msg = request_msg request_id, state
+        msg = request_msg request_id, app, fun, state
         send_request(node_mbox, msg)
         res = await_response(request_id, timeout)
         IO.inspect node_mbox: node_mbox, msg: msg, res: res
@@ -53,12 +54,16 @@ defmodule DexyPluginGateway do
     end
   end
 
+  defp app_fun _state = %{fun: fun} do
+    String.split fun, ~R/\.(?=[\w\-]+$)/, parts: 2
+  end
+
   defp request_id do -(:erlang.unique_integer) end
   defp node_mbox(app) do config(app) end
 
-  defp request_msg request_id, state = %{req: req, args: args, opts: opts} do
+  defp request_msg request_id, app, fun, state = %{args: args, opts: opts} do
     opts = Map.put(opts, "data", pipe_data state)
-    {self(), request_id, req.app, req.fun, args, opts}
+    {self(), request_id, app, fun, args, opts}
   end
 
   defp request_timeout _state = %{opts: opts} do
